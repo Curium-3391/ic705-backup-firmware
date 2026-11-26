@@ -130,7 +130,14 @@ IC705_J140_DAT=/path/to/705J140.dat python3 tests/test_python_tools.py
 Want to help verify on another JP IC-705, or port to **EU/Global/US (`705E140.dat`)** or future firmware versions?
 Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md).
 
-## License & Acknowledgments
+## Special Thanks & Acknowledgments
+
+Special thanks to **Dawid ([SQ6EMM](https://github.com/sq6emm))** for his pioneering open-source work on the Icom RZ/A1 transceiver platform! This project would not have been possible without his research, tooling, and clean-room distribution architecture:
+
+- **[`sq6emm/icom-custom-firmware`](https://github.com/sq6emm/icom-custom-firmware)** ([live web patcher](https://sq6emm.github.io/icom-custom-firmware/)) — Inspiration for the zero-upload client-side GitHub Pages patcher design, and the MIT-licensed RZ/A1 container codec (`docs/js/codec.js`, `tools/ic_rza1_codec.py`) and incremental MD5 implementation (`docs/js/md5.js`).
+- **[`sq6emm/ic705-ic9700-ic905-bring-your-own-firmware`](https://github.com/sq6emm/ic705-ic9700-ic905-bring-your-own-firmware)** & **[`sq6emm/icap-sdk`](https://github.com/sq6emm/icap-sdk)** — Foundational Icom `.dat` container documentation and open-source ecosystem that also enabled independent round-trip verification and third-party interoperability testing (G7).
+
+## License
 
 - Licensed under the [MIT License](LICENSE).
-- RZ/A1 container codec (`docs/js/codec.js`, `tools/ic_rza1_codec.py`) and incremental MD5 (`docs/js/md5.js`) are adapted under the MIT License from [`sq6emm/icom-custom-firmware`](https://github.com/sq6emm/icom-custom-firmware) (Copyright © 2026 Dawid SQ6EMM). See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+- See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for full upstream copyright and license notices.
