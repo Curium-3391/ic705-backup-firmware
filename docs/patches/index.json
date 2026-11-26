@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "project": "ic705-backup-firmware",
+  "releases": [
+    {
+      "input": {
+        "radio": "IC-705",
+        "region": "JP (Japan Domestic ONLY)",
+        "version": "1.40",
+        "file": "705J140.dat",
+        "size_bytes": 12259086,
+        "md5": "b605171288db4a74e0992a8f2afcb1c3",
+        "sha256": "2522f62211ad5fdb313e793f94bb0574a22327660bdbde47ba9124f424114e45"
+      },
+      "release": {
+        "id": "rb3-b5-j140",
+        "name": "705RB3B5",
+        "label": "RB3-B5 (v5 Final)",
+        "build_id": "RB3-DEDICATED-BACKUP-FINAL-J140-V5",
+        "date": "2026-11-26",
+        "title": "IC-705 JP v1.40 — Read-Only 5-Chip Full-Storage Backup Firmware (RB3 B5)",
+        "patch_file": "705J140_rb3_b5.json",
+        "output_size_bytes": 12259086,
+        "output_md5": "5bf3948a26eec622b9af1ad111da52cb",
+        "output_sha256": "17841ee947ad2a20912b289770776817963d73cfcf9d6b16b76cd8c32fc903bb",
+        "hardware_verified": true,
+        "verified_scope": "JP domestic IC-705 (705J140.dat v1.40) ONLY — G1 through G7 hardware lifecycle passed",
+        "bootloader_modified": false,
+        "storage_write_operations": 0,
+        "features": [
+          "Reads all 5 non-volatile chips to SD card with zero non-volatile storage writes: IC704 (16 MiB ARM Flash), IC705 & IC706 (2 x 128 KiB I2C EEPROM), WLAN Flash (4 MiB SPI NOR), IC553 (2 MiB DSP/FPGA Flash).",
+          "Leaves the 64 KiB stock bootstrap, loader, DSP/FPGA image, and WLAN image 100% untouched; modifies only 4 bytes in main ARM application (single branch hook) plus appends open-source 13,660-byte payload.",
+          "Dual-pass readback verification per chip with on-device SHA-256 manifest (SHA256SUMS.txt + RB3_session_manifest.json), one-shot ARMED -> CONSUMED trigger protection, and TX inhibit.",
+          "Alternating progress checkpoints (RB5_PROGRESS_A/B.json), safe SD sync + unmount, Watchdog auto-reboot, and retained-SRAM post-restart receipt (RB5_COMPLETION.json + RB5_POST_RESTART.json).",
+          "Stock J140 restoration and compatible third-party firmware (SQ6EMM) re-installation hardware-verified via stock SD Firmware Updater without disassembly or external programmer."
+        ]
+      }
+    }
+  ],
+  "unsupported_regions_seeking_contributors": [
+    {
+      "radio": "IC-705",
+      "region": "EU / Global / USA (e.g. 705E140.dat)",
+      "status": "NOT_YET_SUPPORTED",
+      "note": "ARM main application addresses differ between JP (705J140.dat) and Export/Global (705E140.dat). Community symbol-porting and real-hardware verification PRs are welcome."
+    }
+  ]
+}

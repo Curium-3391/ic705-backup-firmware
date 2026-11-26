@@ -1,0 +1,53 @@
+name: Hardware Verification Report
+description: Report independent hardware testing results (JP J140 or regional porting attempts) — NEVER attach real dumps or official .dat files!
+title: "[HW-Verify] <Region / Version>: <Short Summary>"
+labels: ["hardware-verification"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **PRIVACY & COPYRIGHT WARNING:**
+        NEVER upload or paste `IC705_EEPROM.bin`, `IC706_EEPROM.bin`, `EEPROM_logical.bin`, `WLAN_FLASH.bin`, `IC704_ARM.bin`, `IC553_DSP_FPGA.bin`, or official Icom `.dat` files!
+        Only share non-sensitive JSON manifests, status flags, and SHA-256 digests.
+  - type: dropdown
+    id: region
+    attributes:
+      label: IC-705 Regional Variant
+      options:
+        - JP (Japan Domestic — 705J140.dat)
+        - EU / Global (705E140.dat)
+        - USA / Export
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: official_sha256
+    attributes:
+      label: Official Input .dat SHA-256
+      placeholder: "2522f62211ad5fdb313e793f94bb0574a22327660bdbde47ba9124f424114e45"
+    validations:
+      required: true
+  - type: input
+    id: output_sha256
+    attributes:
+      label: Patched Backup .dat SHA-256
+      placeholder: "17841ee947ad2a20912b289770776817963d73cfcf9d6b16b76cd8c32fc903bb"
+    validations:
+      required: true
+  - type: checkboxes
+    id: gates
+    attributes:
+      label: Observed Lifecycle Results
+      options:
+        - label: Browser/CLI patcher output matched expected MD5 & SHA-256
+        - label: Flashed cleanly via stock SD Firmware Updater (no armed .TRG during flash)
+        - label: RB3_FULL_BACKUP.TRG executed and auto-rebooted cleanly
+        - label: Post-restart RB5_COMPLETION.json & RB5_POST_RESTART.json exported
+        - label: verify_b5_backup.py returned overall_ok = true
+        - label: Offline EEPROM_logical.bin reconstruction passed both SUM8 checks
+        - label: Stock firmware restored cleanly afterward
+  - type: textarea
+    id: notes
+    attributes:
+      label: Non-Sensitive Logs / Observations (NO private dumps)
+      placeholder: Paste verify_b5_backup.py output, JEDEC IDs observed, or any issues noticed.

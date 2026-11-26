@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Clean-room zero-proprietary-files audit
+        run: python3 tests/check_clean_room.py
+
+      - name: Run Python & C99 host state-machine tests
+        run: python3 tests/test_python_tools.py
+
+      - name: Run Browser JS module & schema tests
+        run: node tests/test_js_patcher.mjs

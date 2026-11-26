@@ -1,0 +1,29 @@
+# Proprietary firmware files and hardware dumps — NEVER commit!
+*.dat
+*.DAT
+*.bin
+*.BIN
+*.elf
+*.ELF
+*.img
+*.rom
+*.zip
+*.tar
+*.gz
+*.xz
+
+# Private radio backups
+*IC704*.bin
+*IC705_EEPROM*.bin
+*IC706_EEPROM*.bin
+*EEPROM_logical*.bin
+*WLAN_FLASH*.bin
+*IC553_DSP_FPGA*.bin
+*IC705_J_original*
+
+# Build & local caches
+build/
+__pycache__/
+*.pyc
+.DS_Store
+node_modules/

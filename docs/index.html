@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>IC-705 Full-Storage Backup Firmware Patcher</title>
+<meta name="description" content="Client-side clean-room browser patcher to build a read-only 5-chip IC-705 backup firmware from your own official Icom .dat update file.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231d5fb8'/%3E%3Cpath d='M3.5 11.5V4.5h9v7h-9zm2-5v3h5v-3h-5z' fill='white'/%3E%3C/svg%3E">
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <h1>IC-705 Full-Storage Backup Firmware Patcher</h1>
+      <p class="sub">Build a read-only 5-chip hardware backup firmware from <em>your own</em> official Icom <code>.dat</code> file &mdash; 100% locally in your browser.</p>
+    </div>
+    <nav class="links">
+      <a href="#patcher">Patcher</a>
+      <a href="#triggers">SD Triggers</a>
+      <a href="#eeprom-tool">Local EEPROM Tool</a>
+      <a href="#wlan-note">WLAN 0x8F040 Note</a>
+      <a href="https://github.com/Curium-3391/ic705-backup-firmware" rel="noopener noreferrer" target="_blank">GitHub Repo</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="notice danger" aria-labelledby="disc-h">
+    <h2 id="disc-h">Important Notices &amp; Honest Disclosures</h2>
+    <ul>
+      <li><strong>Unofficial independent project:</strong> Not affiliated with, supported by, or endorsed by Icom Inc. Use strictly at your own risk; flashing unofficial firmware may void warranty or brick a radio if interrupted.</li>
+      <li><strong>No real hardware dumps or official Icom files are included:</strong> For copyright and privacy reasons, this repository contains <em>zero</em> official Icom firmware files and <em>zero</em> real radio dumps (no IC704, IC553, EEPROM, or WLAN dumps). Everything runs locally in your browser on the official <code>.dat</code> file you supply.</li>
+      <li><strong>Japanese domestic version (JP J140) verified ONLY so far:</strong> Real-hardware lifecycle testing (G1&ndash;G7: backup, SHA-256 verification, auto-reboot, stock restoration, third-party restoration) has so far been performed <strong>only on a Japanese domestic IC-705 running official <code>705J140.dat</code> (v1.40)</strong>. EU/Global/US models (<code>705E140.dat</code>) have different ARM addresses and are <strong>not yet supported</strong>. Community verification and regional porting contributions are warmly welcome!</li>
+      <li><strong>Zero non-volatile writes, stock bootloader untouched:</strong> The backup payload executes strictly read-only operations against all 5 chips (<code>storage_write_operations = 0</code>), leaves the 64&nbsp;KiB stock bootstrap untouched, and only offers a download if both MD5 and SHA-256 match the hardware-verified build byte-for-byte.</li>
+    </ul>
+  </section>
+
+  <section class="card" aria-labelledby="about-h">
+    <h2 id="about-h">What This Backup Firmware Does</h2>
+    <p>Without opening the radio, desoldering chips, or attaching clip programmers, the generated <code>705RB3B5.dat</code> reads all five non-volatile storage devices in the IC-705 onto your SD card (<code>/IC-705/</code>) with dual-pass SHA-256 readback verification:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Chip</th><th>Type &amp; Capacity</th><th>Output File</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>IC704</code></td><td>IS25LP128F ARM SPI NOR (16&nbsp;MiB)</td><td><code>IC704_ARM.bin</code></td><td>Active post-modification dump (not a pre-mod T48 factory dump)</td></tr>
+          <tr><td><code>IC705</code></td><td>I&sup2;C EEPROM Bank 0 (128&nbsp;KiB)</td><td><code>IC705_EEPROM.bin</code></td><td>Even 64-byte stripes; contains unit-specific calibration &mdash; <strong>keep private</strong></td></tr>
+          <tr><td><code>IC706</code></td><td>I&sup2;C EEPROM Bank 1 (128&nbsp;KiB)</td><td><code>IC706_EEPROM.bin</code></td><td>Odd 64-byte stripes; pair with IC705 to reconstruct <code>EEPROM_logical.bin</code></td></tr>
+          <tr><td><code>WLAN Flash</code></td><td>SPI NOR (4&nbsp;MiB, JEDEC <code>C22816</code>)</td><td><code>WLAN_FLASH.bin</code></td><td>TI CC3120 SimpleLink SFLASH &mdash; <strong>keep private</strong> (may hold Wi-Fi config)</td></tr>
+          <tr><td><code>IC553</code></td><td>IS25LP016D DSP/FPGA Flash (2&nbsp;MiB, JEDEC <code>9D6015</code>)</td><td><code>IC553_DSP_FPGA.bin</code></td><td>DV-DSP (C5517), IF-DSP (SHARC), Voice Synth, and Cyclone 10 LP FPGA</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted small">Inspired by the clean-room browser patcher architecture of <a href="https://github.com/sq6emm/icom-custom-firmware" rel="noopener noreferrer" target="_blank">sq6emm/icom-custom-firmware</a> (container codec &amp; MD5 used under the MIT License).</p>
+  </section>
+
+  <section id="patcher" class="card" aria-labelledby="step1-h">
+    <h2 id="step1-h"><span class="step">1</span> Select Your Official Icom Firmware File</h2>
+    <p class="muted">Download the official update directly from Icom's website, unzip it, and drop the unmodified <code>.dat</code> file below.</p>
+    <label id="drop" class="drop" tabindex="0">
+      <input id="file" type="file" accept=".dat,application/octet-stream">
+      <span class="drop-main">Drop official <code>.dat</code> file here or <u>browse</u></span>
+      <span class="drop-hint">Processed 100% locally in your browser &mdash; never uploaded anywhere.</span>
+    </label>
+    <div id="fileinfo" class="fileinfo" hidden>
+      <dl>
+        <dt>File</dt><dd id="fi-name"></dd>
+        <dt>Size</dt><dd id="fi-size"></dd>
+        <dt>MD5</dt><dd><code id="fi-md5" class="hash">computing&hellip;</code></dd>
+        <dt>SHA-256</dt><dd><code id="fi-sha256" class="hash">computing&hellip;</code></dd>
+      </dl>
+      <div id="fi-status" class="status" hidden></div>
+    </div>
+  </section>
+
+  <section id="release" class="card" aria-labelledby="step2-h" hidden>
+    <h2 id="step2-h"><span class="step">2</span> Verified Release Match</h2>
+    <div class="rel-head">
+      <div>
+        <h3 id="rel-title"></h3>
+        <p class="muted small" id="rel-meta"></p>
+      </div>
+      <div class="badges" id="rel-badges"></div>
+    </div>
+    <ul id="rel-features" class="features"></ul>
+    <dl class="kv">
+      <dt>Official Input</dt><dd><span id="rel-in"></span><br><code id="rel-in-sha256" class="hash small"></code></dd>
+      <dt>Expected Output MD5</dt><dd><code id="rel-out-md5" class="hash small"></code></dd>
+      <dt>Expected Output SHA-256</dt><dd><code id="rel-out-sha256" class="hash small"></code></dd>
+    </dl>
+
+    <div class="notice warn">
+      <h4>Safe Flashing &amp; Operation Procedure</h4>
+      <ol>
+        <li>Turn <strong>OFF Wi-Fi and Bluetooth</strong> on the IC-705 before starting.</li>
+        <li>Copy <strong>only</strong> <code>705RB3B5.dat</code> to <code>/IC-705/</code> on your SD card (make sure <strong>no</strong> <code>RB3_*.TRG</code> file is present yet), and flash it via <code>MENU &rarr; SET &rarr; SD Card &rarr; Firmware Update</code>.</li>
+        <li>After the radio reboots, remove <code>705RB3B5.dat</code> from the SD card and place <code>RB3_FULL_BACKUP.TRG</code> (content <code>ARMED\r\n</code>) into <code>/IC-705/</code>.</li>
+        <li>Enter <code>Firmware Update</code> once to trigger the full 5-chip read-only backup. Wait patiently until the radio <strong>automatically reboots</strong> via its watchdog.</li>
+        <li><strong>Do NOT add a new trigger.</strong> Enter <code>Firmware Update</code> one more time to export the post-restart receipt (<code>RB5_COMPLETION.json</code> and <code>RB5_POST_RESTART.json</code>), then cancel back out.</li>
+        <li>Verify the backup on your PC, keep your EEPROM and WLAN dumps strictly private, delete any <code>RB3_*.TRG</code> files, and restore official <code>705J140.dat</code> (or your preferred compatible firmware) via the stock SD Firmware Updater.</li>
+      </ol>
+    </div>
+
+    <label class="accept">
+      <input type="checkbox" id="accept">
+      <span>I understand this is unofficial open-source software verified only on IC-705 JP v1.40 so far, I will use it at my own risk with reliable power, and I will keep my EEPROM/WLAN backups private.</span>
+    </label>
+    <div class="actions">
+      <button id="build" type="button" class="primary" disabled>Build &amp; Verify Backup .dat</button>
+      <span id="build-hint" class="muted small"></span>
+    </div>
+
+    <div id="progress" class="progress" hidden>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="bar"></span></div>
+      <div class="prog-line"><span id="stage">Starting&hellip;</span><span id="elapsed" class="muted"></span></div>
+    </div>
+    <div id="result" class="status" hidden></div>
+  </section>
+
+  <section class="card" aria-labelledby="sup-h">
+    <h2 id="sup-h">Supported Official Firmware Matrix</h2>
+    <p class="muted">Only unmodified official files whose MD5 and SHA-256 match a verified entry below are accepted. Unsupported regions are refused to prevent accidental cross-region flashing.</p>
+    <div class="table-wrap">
+      <table id="supported">
+        <thead>
+          <tr><th>Radio &amp; Region</th><th>Official Input &amp; SHA-256</th><th>Status</th><th>Verified Output SHA-256</th></tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="4" class="muted">Loading release registry&hellip;</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="triggers" class="card" aria-labelledby="trig-h">
+    <h2 id="trig-h">One-Shot SD Trigger Kit (Generated Locally)</h2>
+    <p class="muted">Each trigger file is a 7-byte plain text file containing <code>ARMED\r\n</code>. Once executed on the radio, the firmware overwrites it to <code>CONSUMED\r\n</code> so it cannot re-run accidentally. Place only <strong>one</strong> armed trigger in <code>/IC-705/</code> at a time, and <strong>never</strong> place an armed trigger while flashing the firmware itself.</p>
+    <div class="actions">
+      <button type="button" class="primary" data-trigger="RB3_FULL_BACKUP.TRG">Download RB3_FULL_BACKUP.TRG (All 5 Chips)</button>
+      <button type="button" data-trigger="RB3_STG12.TRG">Download RB3_STG12.TRG (Self-Test Only)</button>
+      <button type="button" data-trigger="RB3_STG6_WLAN.TRG">Download RB3_STG6_WLAN.TRG (WLAN Flash Only)</button>
+    </div>
+  </section>
+
+  <section id="eeprom-tool" class="card" aria-labelledby="ee-h">
+    <h2 id="ee-h">Local Offline EEPROM Reconstructor &amp; Checksum Verifier</h2>
+    <p class="muted">IC-705 stores its 256&nbsp;KiB logical EEPROM striped in 64-byte blocks across physical chips <code>IC705</code> (even) and <code>IC706</code> (odd). Select your pair of dumps from the same backup session below to verify the bijection, check the two known J140 SUM8 checksums and touch-screen marker, and download <code>EEPROM_logical.bin</code> &mdash; <strong>100% locally in your browser, never uploaded</strong>.</p>
+    <div class="grid-2">
+      <div class="file-field">
+        <label for="ee-705">IC705_EEPROM.bin (131,072 bytes)</label>
+        <input id="ee-705" type="file" accept=".bin,application/octet-stream">
+      </div>
+      <div class="file-field">
+        <label for="ee-706">IC706_EEPROM.bin (131,072 bytes)</label>
+        <input id="ee-706" type="file" accept=".bin,application/octet-stream">
+      </div>
+    </div>
+    <div class="actions">
+      <button id="ee-run" type="button">Verify &amp; Reconstruct EEPROM_logical.bin Locally</button>
+    </div>
+    <div id="ee-result" class="status" hidden></div>
+  </section>
+
+  <section id="wlan-note" class="card" aria-labelledby="wlan-h">
+    <h2 id="wlan-h">Known Observation: WLAN Flash Offset <code>0x8F040</code> (<code>/sys/mode.cfg</code>)</h2>
+    <p>During real-hardware validation comparing a standalone WLAN-only backup against a subsequent full 5-chip backup, we observed a 687-byte difference inside the TI CC3120 SimpleLink SFLASH filesystem. We document this transparently because it appears benign and does <strong>not</strong> indicate corruption:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Finding</th></tr></thead>
+        <tbody>
+          <tr><td>Location</td><td>WLAN Flash file <code>/sys/mode.cfg</code> (flash offset <code>0x8F040</code>)</td></tr>
+          <tr><td>Field offset</td><td>Payload offset <code>0x0C</code> inside <code>/sys/mode.cfg</code> (80-byte payload)</td></tr>
+          <tr><td>Observed change</td><td>32-bit value <code>4 &rarr; 0</code> (only 1 payload byte changed: <code>0x04 &rarr; 0x00</code>)</td></tr>
+          <tr><td>Likely meaning</td><td>Strong candidate: CC3120 NetApp service enable bitmap with <strong>mDNS bit <code>0x04</code> cleared</strong> (not yet formally proven 1:1 via live API correlation)</td></tr>
+          <tr><td>Action required?</td><td><strong>None. Do NOT attempt to force this byte back to <code>0x04</code>.</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small"><strong>Evidence &amp; attribution:</strong> Out of 687 differing bytes between runs, 686 bytes are SimpleLink SFLASH metadata headers, counters, and mirrored backup records; only 1 payload byte (<code>0x8F040</code>) changed, and both captures independently passed dual-pass hardware SHA-256 verification. Static analysis of stock ARM firmware shows Icom's own WLAN stop/init routines call <code>sl_NetAppStop(4)</code> and <code>sl_NetAppStart(...)</code>, with physical flash writes performed by the CC3120 network processor filesystem &mdash; the backup firmware performs <strong>zero</strong> flash write commands (<code>storage_write_operations = 0</code>). Without a real-time temporal trace, we cannot confirm whether the CC3120 persisted that state during boot, Wi-Fi stop, mode switching, or before bus acquisition. There is no evidence it causes any shutdown issue, and B4/B5 never modify this location.</p>
+  </section>
+
+  <section id="contributing" class="card" aria-labelledby="contrib-h">
+    <h2 id="contrib-h">Community Verification &amp; Contributions Welcome</h2>
+    <p>Because this project ships <strong>no real hardware dumps</strong> and has so far been verified <strong>only on a Japanese domestic IC-705 (<code>705J140.dat</code>)</strong>, we actively welcome community help on <a href="https://github.com/Curium-3391/ic705-backup-firmware" rel="noopener noreferrer" target="_blank">GitHub</a>:</p>
+    <ul>
+      <li><strong>JP IC-705 v1.40 users:</strong> Independent hardware test reports (confirming SHA-256 matches, auto-reboot, and stock recovery — please submit manifests/hashes only, <em>never</em> upload private EEPROM or WLAN dumps!).</li>
+      <li><strong>EU / Global / US IC-705 users (<code>705E140.dat</code> and other versions):</strong> Help verify ARM J140&rarr;E140 symbol mappings and contribute clean-room patch JSONs and hardware verification reports.</li>
+      <li><strong>Auditors &amp; developers:</strong> Review the open-source Cortex-A9 backup payload in <code>firmware/</code>, host C state-machine tests, and Python/JS verification scripts.</li>
+    </ul>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <p>Open-source under the MIT License. Clean-room project: no proprietary Icom firmware, binaries, or private radio dumps are hosted here. Container codec and MD5 modules adapted from <a href="https://github.com/sq6emm/icom-custom-firmware" rel="noopener noreferrer" target="_blank">icom-custom-firmware</a> (Copyright &copy; 2026 Dawid SQ6EMM, MIT License).</p>
+</footer>
+</body>
+</html>
