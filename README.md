@@ -125,6 +125,12 @@ IC705_J140_DAT=/path/to/705J140.dat python3 tests/test_python_tools.py
 
 ---
 
+## Upstream Integration Goal & Collaboration with SQ6EMM
+
+This standalone backup firmware (`705RB3B5.dat`) is intentionally minimal and self-contained so it can be audited and verified in isolation. **Long-term, we are very interested in integrating this read-only 5-chip backup capability upstream into Dawid SQ6EMM's firmware ecosystem ([`sq6emm/icom-custom-firmware`](https://github.com/sq6emm/icom-custom-firmware) / [`sq6emm/icap-sdk`](https://github.com/sq6emm/icap-sdk)) rather than fragmenting the community with a separate standalone firmware.**
+
+If SQ6EMM or community contributors are interested in merging or adapting this backup module (e.g., as an optional built-in safety tool or SD-triggered utility alongside existing custom firmware features), all source code in `firmware/` is MIT-licensed and ready for collaboration.
+
 ## Contributing & Regional Support
 
 Want to help verify on another JP IC-705, or port to **EU/Global/US (`705E140.dat`)** or future firmware versions?
