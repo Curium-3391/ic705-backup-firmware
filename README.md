@@ -101,7 +101,7 @@ python3 tools/reconstruct_eeprom.py \
 - `docs/patches/` — Clean-room patch registry (`index.json`) and J140 B5 patch (`705J140_rb3_b5.json`)
 - `firmware/` — 100% open-source Cortex-A9 C & Assembly source code and host C99 state-machine test suite
 - `tools/` — Standalone Python CLI patcher, RZ/A1 codec, backup verifiers, and EEPROM reconstructor
-- `docs_technical/` — Architecture, safety model, hardware verification matrix, and WLAN `0x8F040` analysis
+- `docs_technical/` — Architecture & safety model ([`ARCHITECTURE_AND_SAFETY.md`](docs_technical/ARCHITECTURE_AND_SAFETY.md)), verification matrix ([`HARDWARE_VERIFICATION_STATUS.md`](docs_technical/HARDWARE_VERIFICATION_STATUS.md)), porting guide for EU/Global/US regions ([`PORTING_TO_OTHER_REGIONS.md`](docs_technical/PORTING_TO_OTHER_REGIONS.md)), troubleshooting & recovery ([`TROUBLESHOOTING_AND_RECOVERY.md`](docs_technical/TROUBLESHOOTING_AND_RECOVERY.md)), and WLAN `0x8F040` analysis ([`WLAN_FLASH_0x8F040_NOTE.md`](docs_technical/WLAN_FLASH_0x8F040_NOTE.md))
 - `tests/` — Automated Node.js, Python, C state-machine, and clean-room zero-proprietary-files CI checks
 
 ---
